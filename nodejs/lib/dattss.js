@@ -98,7 +98,8 @@ var dattss = function(spec, my) {
                     nam: st,
                     pct: my.pct,
                     sum: 0,
-                    cnt: 0 };
+                    cnt: 0,
+                    emp: false };
 
           // first aggregation pass (my.acc[typ][st] orderd by date)
           my.acc[typ][st].sort(function(a,b) { return a.date-b.date; });
@@ -109,6 +110,7 @@ var dattss = function(spec, my) {
             p.min = ((p.min || v.value) < v.value) ? p.min : v.value;
             p.lst = v.value;
             p.fst = p.fst || v.value;
+            p.emp = p.emp || v.emphasis;
           });
 
           // top 10 and bot 10 computation (my.acc[typ][st] ordered by value)
@@ -179,17 +181,20 @@ var dattss = function(spec, my) {
    * @param value a DaTtSs-like value '1c' | '253ms' | '34g'
    */
   agg = function(stat, value) {
-    var stat_m = /^([A-Za-z0-9\-\_\.\:]+)$/.exec(stat);
+    var stat_m = /^([A-Za-z0-9\-\_\.\:\!]+)$/.exec(stat);
     if(!stat_m)
       return; // fail silently
 
-    var val_m = /^(-?[0-9]+)(c|ms|g)/.exec(value);
+    var val_m = /^(-?[0-9]+)(c|ms|g)(\!?)/.exec(value);
     if(val_m) {
       var typ = val_m[2];
       var val = parseInt(val_m[1], 10);
+      var emph = (val_m[3] === '!');
 
       my.acc[typ][stat] = my.acc[typ][stat] || [];
-      my.acc[typ][stat].push({ date: Date.now(), value: val });
+      my.acc[typ][stat].push({ date: Date.now(), 
+                               value: val, 
+                               emphasis: emph });
     }
   };
 
