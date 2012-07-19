@@ -160,7 +160,7 @@ var dattss = function(spec, my) {
     };
     my.creq = http.request(options, function(res) {
       //console.log('/agg ' + res.statusCode + ' [' + my.auth + ']');
-      delete my.commit_req;
+      delete my.creq;
     });
     my.creq.on('error', function(err) {
       //console.log('/agg ' + err.message + ' [' + my.auth + ']');
