@@ -35,7 +35,7 @@ exports.CONFIG = fwk.populateConfig(require("../config.js").config);
  * The Client Library requires the the auth key and if required the server and port.
  * These information can be passed directly at construction or by configuration either
  * on the command line (--XX=yyy) or using environment variables:
- *   DATTSS_CLIENT_AUTH: the auth key
+ *   DATTSS_AUTH_KEY: the auth key
  *   DATTSS_SERVER_HOST: the DaTtSs server host to use
  *   DATTSS_SERVER_PORT: the DaTtSs server port to use
  *   DATTSS_PERCENTILE : the percentile value (0.1 default)
@@ -48,7 +48,7 @@ var dattss = function(spec, my) {
   my = my || {};
   var _super = {};
 
-  my.auth = spec.auth || exports.CONFIG['DATTSS_CLIENT_AUTH'];
+  my.auth = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
   my.host = spec.host || exports.CONFIG['DATTSS_SERVER_HOST'];
   my.port = spec.port || parseInt(exports.CONFIG['DATTSS_SERVER_PORT'], 10);
   my.pct  = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
@@ -243,7 +243,7 @@ exports.dattss = dattss;
  * then it creates a new one. It returns the existing one otherwise without 
  * modifiying the configuration (auth, host, port)
  *
- * @param spec { name, auth, [host], [port], [pct] } or just name as a string
+ * @param spec { name, [auth], [host], [port], [pct] } or just name as a string
  * @return a dattss process object
  */
 
@@ -256,7 +256,7 @@ exports.process = function(spec) {
 
   var cache = exports.CACHE;
 
-  spec.auth = spec.auth || exports.CONFIG['DATTSS_CLIENT_AUTH'];
+  spec.auth = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
   spec.host = spec.host || exports.CONFIG['DATTSS_SERVER_HOST'];
   spec.port = spec.port || parseInt(exports.CONFIG['DATTSS_SERVER_PORT'], 10);
   spec.pct  = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
