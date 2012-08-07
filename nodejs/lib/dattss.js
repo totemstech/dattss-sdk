@@ -51,12 +51,12 @@ var dattss = function(spec, my) {
   my = my || {};
   var _super = {};
 
-  my.auth      = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
+  my.auth      = spec.auth      || exports.CONFIG['DATTSS_AUTH_KEY'];
   my.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
   my.http_port = spec.http_port || parseInt(exports.CONFIG['DATTSS_SERVER_HTTP_PORT'], 10);
-  my.udp_host  = spec.udp_host || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
-  my.udp_port  = spec.udp_port || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);
-  my.pct       = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
+  my.udp_host  = spec.udp_host  || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
+  my.udp_port  = spec.udp_port  || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);
+  my.pct       = spec.pct       || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
 
   my.name = spec.name || 'noname';
   my.stopped = true;
@@ -279,13 +279,13 @@ exports.process = function(spec) {
 
   var cache = exports.CACHE;
 
-  spec.auth    = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
-  my.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
-  my.http_port = spec.http_port || parseInt(exports.CONFIG['DATTSS_SERVER_HTTP_PORT'], 10);
-  my.udp_host  = spec.udp_host || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
-  my.udp_port  = spec.udp_port || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);
-  spec.pct     = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
-  spec.name    = spec.name || 'noname';
+  spec.auth      = spec.auth      || exports.CONFIG['DATTSS_AUTH_KEY'];
+  soec.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
+  spec.http_port = spec.http_port || parseInt(exports.CONFIG['DATTSS_SERVER_HTTP_PORT'], 10);
+  spec.udp_host  = spec.udp_host  || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
+  spec.udp_port  = spec.udp_port  || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);
+  spec.pct       = spec.pct       || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
+  spec.name      = spec.name      || 'noname';
 
   cache[spec.auth] = cache[spec.auth] || {};
   
