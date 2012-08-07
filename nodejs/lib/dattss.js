@@ -24,6 +24,7 @@
 var util = require('util');
 var fwk = require('fwk');
 var http = require('http');
+var socket = require('dgram').createSocket('udp4');
 
 
 exports.CONFIG = fwk.populateConfig(require("../config.js").config);
@@ -36,22 +37,26 @@ exports.CONFIG = fwk.populateConfig(require("../config.js").config);
  * These information can be passed directly at construction or by configuration either
  * on the command line (--XX=yyy) or using environment variables:
  *   DATTSS_AUTH_KEY: the auth key
- *   DATTSS_SERVER_HOST: the DaTtSs server host to use
- *   DATTSS_SERVER_PORT: the DaTtSs server port to use
+ *   DATTSS_SERVER_HTTP_HOST: the DaTtSs server http host to use
+ *   DATTSS_SERVER_HTTP_PORT: the DaTtSs server http port to use
+ *   DATTSS_SERVER_UDP_HOST: the DaTtSs server udp host to use
+ *   DATTSS_SERVER_UDP_PORT: the DaTtSs server udp port to use
  *   DATTSS_PERCENTILE : the percentile value (0.1 default)
  *
  * @extends {}
  *
- * @param spec { auth, [host], [port], [pct] }
+ * @param spec { auth, [http_host], [http_port], [udp_host], [udp_port], [pct] }
  */
 var dattss = function(spec, my) {
   my = my || {};
   var _super = {};
 
-  my.auth = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
-  my.host = spec.host || exports.CONFIG['DATTSS_SERVER_HOST'];
-  my.port = spec.port || parseInt(exports.CONFIG['DATTSS_SERVER_PORT'], 10);
-  my.pct  = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
+  my.auth      = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
+  my.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
+  my.http_port = spec.http_port || parseInt(exports.CONFIG['DATTSS_SERVER_HTTP_PORT'], 10);
+  my.udp_host  = spec.udp_host || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
+  my.udp_port  = spec.udp_port || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);
+  my.pct       = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
 
   my.name = spec.name || 'noname';
   my.stopped = true;
@@ -152,8 +157,8 @@ var dattss = function(spec, my) {
       my.creq.abort();
 
     var options = {
-      host: my.host, 
-      port: my.port,
+      host: my.http_host, 
+      port: my.http_port,
       method: 'PUT',
       path: '/agg?auth=' + my.auth,
       headers: { "content-type": 'application/json' }
@@ -179,9 +184,12 @@ var dattss = function(spec, my) {
    * the current process.
    * @param stat the name of the statistic to aggregate
    * @param value a DaTtSs-like value '1c' | '253ms' | '34g'
+   * @param udp use direct udp delivery (no pre-aggregation)
    */
-  agg = function(stat, value) {
-    var stat_m = /^([A-Za-z0-9\-\_\.\:\!]+)$/.exec(stat);
+  agg = function(stat, value, udp) {
+    if(my.stopped)
+      return;
+    var stat_m = /^([A-Za-z0-9\-_\.\!]+)$/.exec(stat);
     if(!stat_m)
       return; // fail silently
 
@@ -191,10 +199,21 @@ var dattss = function(spec, my) {
       var val = parseInt(val_m[1], 10);
       var emph = (val_m[3] === '!');
 
-      my.acc[typ][stat] = my.acc[typ][stat] || [];
-      my.acc[typ][stat].push({ date: Date.now(), 
-                               value: val, 
-                               emphasis: emph });
+      if(!udp) {
+        my.acc[typ][stat] = my.acc[typ][stat] || [];
+        my.acc[typ][stat].push({ date: Date.now(), 
+                                 value: val, 
+                                 emphasis: emph });
+      }
+      else {
+        var body = my.auth + ':' + my.name + ':' + stat + ':' + value;
+        body = new Buffer(body);
+        socket.send(body, 0, body.length, 
+                    my.udp_port, my.udp_host,
+                    function(err, bytes) {
+                      // fail silently
+                    });
+      }
     }
   };
 
@@ -243,7 +262,11 @@ exports.dattss = dattss;
  * then it creates a new one. It returns the existing one otherwise without 
  * modifiying the configuration (auth, host, port)
  *
- * @param spec { name, [auth], [host], [port], [pct] } or just name as a string
+ * @param spec { name, [auth], 
+ *               [http_host], [http_port], 
+ *               [udp_host], [udp_port], 
+ *               [pct] } 
+ *             or just name as a string
  * @return a dattss process object
  */
 
@@ -256,11 +279,13 @@ exports.process = function(spec) {
 
   var cache = exports.CACHE;
 
-  spec.auth = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
-  spec.host = spec.host || exports.CONFIG['DATTSS_SERVER_HOST'];
-  spec.port = spec.port || parseInt(exports.CONFIG['DATTSS_SERVER_PORT'], 10);
-  spec.pct  = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
-  spec.name = spec.name || 'noname';
+  spec.auth    = spec.auth || exports.CONFIG['DATTSS_AUTH_KEY'];
+  my.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
+  my.http_port = spec.http_port || parseInt(exports.CONFIG['DATTSS_SERVER_HTTP_PORT'], 10);
+  my.udp_host  = spec.udp_host || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
+  my.udp_port  = spec.udp_port || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);
+  spec.pct     = spec.pct  || parseFloat(exports.CONFIG['DATTSS_PERCENTILE']);
+  spec.name    = spec.name || 'noname';
 
   cache[spec.auth] = cache[spec.auth] || {};
   

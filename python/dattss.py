@@ -125,7 +125,7 @@ class Process():
              value the statistic value (as string with type [see doc])'''
     with self.lock:
       if not self.stopped:
-        stat_m = re.match("^[A-Za-z0-9\-\_\.\:\!]+$", stat)
+        stat_m = re.match("^[A-Za-z0-9\-_\.\!]+$", stat)
         if not stat_m:
           return
 
