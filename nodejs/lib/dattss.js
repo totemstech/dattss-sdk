@@ -68,8 +68,6 @@ var dattss = function(spec, my) {
 
   // public
   var agg;              /* agg(stat, value); */
-  //var error;            /* error(err, ctx); */
-  //var warning;          /* warning(err, ctx); */
   
   var start;            /* start(); */
   var stop;             /* stop(); */
@@ -149,9 +147,12 @@ var dattss = function(spec, my) {
     var commit = { nam: my.name,
                    upt: process.uptime(),
                    prt: make_partials() };
-    //console.log('========================================');
-    //console.log(JSON.stringify(commit));
-    //console.log('=++++++++++++++++++++++++++++++++++++++=');
+
+    if(exports.CONFIG['DATTSS_DRIVER_DEBUG']) {
+      console.log('========================================');
+      console.log(JSON.stringify(commit));
+      console.log('=++++++++++++++++++++++++++++++++++++++=');
+    }
     
     if(my.creq)
       my.creq.abort();
@@ -164,11 +165,15 @@ var dattss = function(spec, my) {
       headers: { "content-type": 'application/json' }
     };
     my.creq = http.request(options, function(res) {
-      //console.log('/agg ' + res.statusCode + ' [' + my.auth + ']');
+      if(exports.CONFIG['DATTSS_DRIVER_DEBUG']) {
+        console.log('/agg ' + res.statusCode + ' [' + my.auth + ']');
+      }
       delete my.creq;
     });
     my.creq.on('error', function(err) {
-      //console.log('/agg ' + err.message + ' [' + my.auth + ']');
+      if(exports.CONFIG['DATTSS_DRIVER_DEBUG']) {
+        console.log('ERROR: /agg ' + err.message + ' [' + my.auth + ']');
+      }
     });
     my.creq.write(JSON.stringify(commit));
     my.creq.end();
@@ -190,8 +195,12 @@ var dattss = function(spec, my) {
     if(my.stopped)
       return;
     var stat_m = /^([A-Za-z0-9\-_\.\!]+)$/.exec(stat);
-    if(!stat_m)
+    if(!stat_m) {
+      if(exports.CONFIG['DATTSS_DRIVER_DEBUG']) {
+        console.log('ERROR: agg invalid stat name [' + my.auth + ']');
+      }
       return; // fail silently
+    }
 
     var val_m = /^(-?[0-9]+)(c|ms|g)(\!?)/.exec(value);
     if(val_m) {
@@ -211,7 +220,11 @@ var dattss = function(spec, my) {
         socket.send(body, 0, body.length, 
                     my.udp_port, my.udp_host,
                     function(err, bytes) {
-                      // fail silently
+                      if(err) {
+                        if(exports.CONFIG['DATTSS_DRIVER_DEBUG']) {
+                          console.log('ERROR: udp ' + err.message + ' [' + my.auth + ']');
+                        }
+                      }
                     });
       }
     }
@@ -280,7 +293,7 @@ exports.process = function(spec) {
   var cache = exports.CACHE;
 
   spec.auth      = spec.auth      || exports.CONFIG['DATTSS_AUTH_KEY'];
-  soec.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
+  spec.http_host = spec.http_host || exports.CONFIG['DATTSS_SERVER_HTTP_HOST'];
   spec.http_port = spec.http_port || parseInt(exports.CONFIG['DATTSS_SERVER_HTTP_PORT'], 10);
   spec.udp_host  = spec.udp_host  || exports.CONFIG['DATTSS_SERVER_UDP_HOST'];
   spec.udp_port  = spec.udp_port  || parseInt(exports.CONFIG['DATTSS_SERVER_UDP_PORT'], 10);

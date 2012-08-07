@@ -10,4 +10,6 @@ config['DATTSS_SERVER_HTTP_PORT'] = 80;
 config['DATTSS_SERVER_UDP_HOST'] = 'udp.dattss.com';
 config['DATTSS_SERVER_UDP_PORT'] = 8125;
 
+config['DATTSS_DRIVER_DEBUG'] = false;
+
 exports.config = config;

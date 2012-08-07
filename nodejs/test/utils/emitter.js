@@ -1,5 +1,5 @@
-var dts_test = require('dattss').process('test');
-var dts_cache = require('dattss').process('cache');
+var dts_test = require('../../lib/dattss.js').process('test');
+var dts_cache = require('../../lib/dattss.js').process('cache');
 
 
 setInterval(function() {
@@ -52,7 +52,7 @@ setInterval(function() {
   var min = 0;
   var max = 1;
   var v = Math.floor(Math.random() * (max - min + 1)) + min;
-  dts_cache.agg('test', + v+'c');
+  dts_cache.agg('test', + v+'c', true);
 }, 10);
 
 
@@ -60,5 +60,5 @@ setInterval(function() {
   var min = 150;
   var max = 2500;
   var v = Math.floor(Math.random() * (max - min + 1)) + min;
-  dts_cache.agg('search', v+'ms');
+  dts_cache.agg('search', v+'ms', true);
 }, 10);
